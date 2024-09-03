@@ -1,12 +1,13 @@
 package com.nexusll.ideasgenerator.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nexusll.ideasgenerator.model.Prompt;
 import com.nexusll.ideasgenerator.service.IdeaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-//@RequestMapping("api/generate_ideas")
+@RequestMapping("api")
 public class IdeaRestController {
 
     private final IdeaService ideaService;
@@ -16,20 +17,15 @@ public class IdeaRestController {
         this.ideaService = ideaService;
     }
 
-//    @CrossOrigin(origins = "file:///C:/Users/Marius/Desktop/Nexus/Programe/IdeasGenerator/src/main/java/com/nexusll/ideasgenerator/model/ideaGenerates.html")
-    @GetMapping ("/llm/getIdeas")
-    public String generateIdea() throws JsonProcessingException {
-//        ObjectMapper mapper = new ObjectMapper();
-//        JsonNode obj = mapper.readTree(ideaService.generateIdea());
-//        return obj;
-        // Example JSON string
-        String jsonString = ideaService.generateIdea();
-        // Extract the content part from the JSON
-        String content = jsonString.substring(
-                jsonString.indexOf("\"content\":\"") + 10,
-                jsonString.indexOf("\"}", jsonString.indexOf("\"content\":\"") + 10)
-        );
-        // Return the extracted content
-        return content.replace("\\n", "<br>").replace("\\\"", "\"");
+    @PostMapping("/generate")
+    public String generateIdea(@RequestBody(required = false) Prompt prompt,
+                               @RequestParam(required = false) Long conversationId) throws JsonProcessingException {
+        return ideaService.generateIdea(prompt, conversationId);
+    }
+
+    @PostMapping("/chat")
+    public String chatWithLLM(@RequestBody(required = false) Prompt prompt,
+                              @RequestParam(required = false) Long conversationId) throws JsonProcessingException {
+        return ideaService.chatWithLLM(prompt, conversationId);
     }
 }

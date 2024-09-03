@@ -3,93 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send POST Request</title>
+    <title>Idea Generator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background: linear-gradient(120deg, #f6d365 0%, #fda085 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
             color: #333;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .container {
-            text-align: center;
-            background-color: rgba(255, 255, 255, 0.8);
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
         }
 
         h1 {
-            color: #333;
+            color: #2c3e50;
             margin-bottom: 20px;
+            text-align: center;
+        }
+
+        textarea {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
         }
 
         button {
-            background-color: #ff7e5f;
+            background-color: #3498db;
             border: none;
             color: white;
-            padding: 15px 32px;
+            padding: 12px 24px;
             text-align: center;
             text-decoration: none;
             display: inline-block;
             font-size: 16px;
-            margin: 10px;
-            border-radius: 8px;
+            margin: 10px 5px;
+            border-radius: 5px;
             cursor: pointer;
             transition: background-color 0.3s, transform 0.3s;
         }
 
         button:hover {
-            background-color: #feb47b;
-            transform: scale(1.05);
+            background-color: #2980b9;
+            transform: translateY(-2px);
         }
 
-        pre {
-            text-align: left;
-            background-color: #333;
-            color: #f1f1f1;
-            padding: 15px;
-            border-radius: 5px;
+        #chatButton {
+            background-color: #2ecc71;
+        }
+
+        #chatButton:hover {
+            background-color: #27ae60;
+        }
+
+        #downloadButton {
+            display: none;
+            background-color: #2ecc71;
+        }
+
+        #downloadButton:hover {
+            background-color: #27ae60;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
             margin-top: 20px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        #responseContainer {
+            margin-top: 20px;
             max-height: 400px;
             overflow-y: auto;
-            font-size: 24px; /* Increase the font size */
         }
     </style>
-    <script>
-        function sendPostRequest() {
-            fetch('http://localhost:8080/llm/getIdeas', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            })
-                .then(response => response.text())
-                .then(data => {
-                    let prompt = document.createElement('pre');
-                    prompt.innerHTML = data;
-                    prompt.id = 'response-text'; // Assign an ID for easy manipulation
-                    document.querySelector('.container').appendChild(prompt);
-                    console.log('Success:', data);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                    alert('Request failed: ' + error);
-                });
-        }
-    </script>
 </head>
 <body>
 <div class="container">
-    <h1>Send POST Request</h1>
-    <button onclick="sendPostRequest()">Send Request</button>
+    <h1>Idea Generator</h1>
+    <textarea id="promptInput" placeholder="Enter your custom prompt here (Note: Custom prompts are not currently supported by the backend)"></textarea>
+    <button id="generateButton" onclick="sendPostRequest()">Generate Idea</button>
+    <button id="chatButton" onclick="chatWithLLM()">Chat with LLM</button>
+    <button id="downloadButton" onclick="downloadResponseAsPDF()">Download as PDF</button>
+    <div id="responseContainer"></div>
 </div>
+
+<script>
+    let responseData = [];
+
+    function sendPostRequest() {
+        const promptInput = document.getElementById('promptInput').value;
+        console.log(promptInput);
+
+        // Hide the "Chat with LLM" button
+        document.getElementById('chatButton').style.display = 'none';
+
+        fetch('http://localhost:8080/api/generate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(promptInput)
+        })
+            .then(response => response.text())
+            .then(data => {
+                const formattedData = formatMarkdown(data);
+                responseData.unshift({ timestamp: new Date().toLocaleString(), idea: formattedData });
+                updateResponseTable();
+                document.getElementById('downloadButton').style.display = 'inline-block';
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Request failed: ' + error);
+            });
+    }
+
+    function chatWithLLM() {
+        const promptInput = document.getElementById('promptInput').value;
+
+        // Hide the "Generate Idea" button
+        document.getElementById('generateButton').style.display = 'none';
+
+        fetch('http://localhost:8080/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(promptInput)
+        })
+            .then(response => response.text())
+            .then(data => {
+                const formattedData = formatMarkdown(data);
+                responseData.unshift({ timestamp: new Date().toLocaleString(), idea: formattedData });
+                updateResponseTable();
+                document.getElementById('downloadButton').style.display = 'inline-block';
+                console.log('Success:', data);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Request failed: ' + error);
+            });
+    }
+
+    function formatMarkdown(text) {
+        // Replace markdown syntax with HTML tags
+        text = text.replace(/(^|\s)# (.*?)(\s|$)/g, '$1<h1>$2</h1>$3');  // # for H1
+        text = text.replace(/(^|\s)## (.*?)(\s|$)/g, '$1<h2>$2</h2>$3'); // ## for H2
+        text = text.replace(/(^|\s)### (.*?)(\s|$)/g, '$1<h3>$2</h3>$3'); // ### for H3
+        text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');     // **bold**
+        text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');                 // *italic*
+        text = text.replace(/^- (.*?)(\s|$)/gm, '<li>$1</li>');           // - for list item
+        text = text.replace(/\n/g, '<br>');                               // Newline to <br>
+
+        // Wrap list items in <ul>
+        text = text.replace(/(<li>.*?<\/li>)/g, '<ul>$1</ul>');
+
+        return text;
+    }
+
+    function updateResponseTable() {
+        const responseContainer = document.getElementById('responseContainer');
+        let tableHTML = `
+            <table>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Generated Idea</th>
+                </tr>
+        `;
+
+        responseData.forEach(response => {
+            tableHTML += `
+                <tr>
+                    <td>${response.timestamp}</td>
+                    <td>${response.idea}</td>
+                </tr>
+            `;
+        });
+
+        tableHTML += '</table>';
+        responseContainer.innerHTML = tableHTML;
+    }
+
+    function downloadResponseAsPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        let yPos = 10;
+        responseData.forEach((response, index) => {
+            doc.setFontSize(12);
+            doc.text(`Idea ${index + 1} (${response.timestamp})`, 10, yPos);
+            yPos += 10;
+
+            doc.setFontSize(10);
+            const splitText = doc.splitTextToSize(response.idea.replace(/<[^>]+>/g, ''), 180);
+            doc.text(splitText, 10, yPos);
+            yPos += splitText.length * 5 + 10;
+
+            if (yPos > 280) {
+                doc.addPage();
+                yPos = 10;
+            }
+        });
+
+        doc.save('generated_ideas.pdf');
+    }
+</script>
 </body>
 </html>

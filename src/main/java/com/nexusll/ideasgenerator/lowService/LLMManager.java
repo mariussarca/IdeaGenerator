@@ -1,36 +1,29 @@
 package com.nexusll.ideasgenerator.lowService;
-
-import com.nexusll.ideasgenerator.model.ApiData;
 import com.nexusll.ideasgenerator.model.Prompt;
-import io.netty.util.internal.SocketUtils;
-import org.springframework.context.annotation.Bean;
-import org.springframework.stereotype.Component;
-
+import org.springframework.stereotype.Service;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 
-@Component
+@Service
 public class LLMManager {
 
     public String ask(Prompt prompt){
         try {
-            // The API endpoint URL
             // The URL to connect to
             URL url = new URL("https://api.groq.com/openai/v1/chat/completions");
 
             // Open a connection to the URL
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
-            connection.setRequestProperty("Authorization", "Bearer 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");
+            connection.setRequestProperty("Authorization", "Bearer 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");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
 
             // The JSON data to send in the request body
             String jsonInputString = "{\"messages\": [{\"role\": \"user\", \"content\": \"" + prompt.getSequence() + "\"}], \"model\": \"llama3-8b-8192\"}";
-            //System.out.println(jsonInputString); //here is what I send to LLM, my prompt
+            System.out.println(jsonInputString); //here is what I send to LLM, my prompt
 
             //+ prompt.getSequence() +
 
@@ -42,7 +35,7 @@ public class LLMManager {
 
             // Get the response code
             int responseCode = connection.getResponseCode();
-            System.out.println("Response Code: " + responseCode);
+            System.out.println("Response Code for SEND: " + responseCode);
 
             // Read the response (if needed)
             if (responseCode == HttpURLConnection.HTTP_OK) {
