@@ -21,6 +21,10 @@ public class Prompt {
         this.sequence = sequence;
     }
 
+    public void updateSequence(String userInput, String llmResponse) {
+        this.sequence += "\nUser: " + userInput + "\nAssistant: " + llmResponse;
+    }
+
     public String getSequence() {
         return sequence;
     }

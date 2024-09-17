@@ -63,4 +63,3 @@ public class Message {
         this.timestamp = timestamp;
     }
 }
-
