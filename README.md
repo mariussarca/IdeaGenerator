@@ -29,7 +29,7 @@ This project is an innovative Idea Generator that leverages a curated list of AP
 
 1. Clone the repository:
    ```
-   git clone https://github.com/your-username/idea-generator.git
+   git clone https://github.com/mariussarca/idea-generator.git
    ```
 
 2. Set up the Microsoft SQL Server database and update the connection details in `application.properties`.
@@ -58,10 +58,6 @@ This project is an innovative Idea Generator that leverages a curated list of AP
 ## Contributing
 
 Contributions to the Idea Generator project are welcome! Please feel free to submit pull requests, create issues or spread the word.
-
-## License
-
-[Insert your chosen license here]
 
 ## Acknowledgements
 
