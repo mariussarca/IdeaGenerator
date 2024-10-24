@@ -17,7 +17,7 @@ public class LLMManager {
             // Open a connection to the URL
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("POST");
-            connection.setRequestProperty("Authorization", "Bearer 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");
+            connection.setRequestProperty("Authorization", "Bearer");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
 
